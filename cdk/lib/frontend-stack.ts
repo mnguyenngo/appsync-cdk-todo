@@ -4,7 +4,7 @@ import * as s3Deploy from '@aws-cdk/aws-s3-deployment'
 import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront'
 
 export class FrontendStack extends cdk.Stack {
-  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
     const bucket = new s3.Bucket(this, 'ReactApp', {

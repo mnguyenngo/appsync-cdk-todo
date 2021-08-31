@@ -8,4 +8,5 @@ backend of todo app.
 
 ## Documentation
 
-1. [setup](docs/01_setup.md)
+1. [Setup](docs/01_setup.md)
+2. [Lessons Learned](docs/lessons_learned.md)
