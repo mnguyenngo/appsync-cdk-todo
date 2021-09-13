@@ -103,3 +103,73 @@ const DATA = [
 Verify that the items are created in DynamoDB by going to the `todos` table.
 
 ## Create the frontend UI for the Todo app
+
+[Add initial frontend UI code](https://github.com/mnguyenngo/appsync-cdk-todo/commit/39d4a986e87c2eaf434bb3f75978c1c4cf00973f).
+
+See this [tutorial from Mozilla](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components).
+
+### Connect Frontend UI to Backend AppSync API
+
+See the "Connecting a Client application" section in this [AWS Appsync tutorial](https://aws.amazon.com/blogs/mobile/building-scalable-graphql-apis-on-aws-with-cdk-and-aws-appsync/).
+
+Install aws-amplify
+
+```bash
+yarn add aws-amplify
+```
+
+Fetch data from Amplify API
+
+See [Amplify docs on fetching data](https://docs.amplify.aws/lib/graphqlapi/query-data/q/platform/js/).
+
+Add environment variables to `.env.local`. This file is not committed to the
+repo. You can add your variables to `.env` but make sure not to commit any
+secret tokens to a public repo.
+
+See [create-react-app docs](https://create-react-app.dev/docs/adding-custom-environment-variables/#adding-development-environment-variables-in-env)
+for more info.
+
+Add the following to `App.tsx` to configure Amplify.
+
+```typescript
+import { Amplify, API } from 'aws-amplify'
+import config from './config'
+
+Amplify.configure({
+  aws_appsync_region: 'us-west-2',
+  aws_appsync_graphqlEndpoint: config.appsyncApiEndpoint,
+  aws_appsync_authenticationType: 'API_KEY',
+  aws_appsync_apiKey: config.appsyncApiKey,
+})
+```
+
+Add the `listNotes` query.
+
+```typescript
+const query = `
+  query listNotes {
+    listNotes {
+      id name completed
+    }
+  }
+`
+```
+
+Integrate fetched data with state.
+
+```typescript
+const [tasks, setTasks] = useState<Task[]>([])
+
+useEffect(() => {
+  const fetchTasks = async () => {
+    try {
+    const resp = await API.graphql({ query }) as { data: { listNotes: Task[] } }
+    setTasks(resp.data.listNotes)
+    } catch (error) {
+    console.log(error)
+    }
+  }
+
+  fetchTasks()
+}, [])
+```

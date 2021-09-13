@@ -10,3 +10,7 @@ backend of todo app.
 
 1. [Setup](docs/01_setup.md)
 2. [Lessons Learned](docs/lessons_learned.md)
+
+## References
+
+1. [Create-React-App](https://create-react-app.dev/)

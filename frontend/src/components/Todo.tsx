@@ -102,5 +102,3 @@ export const Todo = (props: TodoProps) => {
     </li>
   )
 }
-
-// export default Todo

@@ -1,9 +1,25 @@
-import { useState } from 'react'
-
+import { useState, useEffect } from 'react'
 import { nanoid } from 'nanoid'
+import { Amplify, API } from 'aws-amplify'
 
 import { Todo } from './components/Todo'
 import { Form } from './components/Form'
+import config from './config'
+
+Amplify.configure({
+  aws_appsync_region: 'us-west-2',
+  aws_appsync_graphqlEndpoint: config.appsyncApiEndpoint,
+  aws_appsync_authenticationType: 'API_KEY',
+  aws_appsync_apiKey: config.appsyncApiKey,
+})
+
+const query = `
+  query listNotes {
+    listNotes {
+      id name completed
+    }
+  }
+`
 
 type Task = {
   id: string
@@ -12,13 +28,22 @@ type Task = {
   completed: boolean
 }
 
-type AppProps = {
-  tasks: Task[]
-}
+function App() {
 
-function App(props: AppProps) {
+  const [tasks, setTasks] = useState<Task[]>([])
 
-  const [tasks, setTasks] = useState(props.tasks)
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const resp = await API.graphql({ query }) as { data: { listNotes: Task[] } }
+        setTasks(resp.data.listNotes)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    fetchTasks()
+  }, [])
 
   const toggleTaskCompleted = (id: string) => {
     const updatedTasks = tasks.map(task => {
