@@ -13,7 +13,7 @@ Amplify.configure({
   aws_appsync_apiKey: config.appsyncApiKey,
 })
 
-const query = `
+const listTasksQuery = `
   query listNotes {
     listNotes {
       id name completed
@@ -21,9 +21,16 @@ const query = `
   }
 `
 
+const addTaskMutation = `
+  mutation createNote($note: NoteInput!) {
+    createNote(note: $note) {
+      id name completed
+    }
+  }
+`
+
 type Task = {
   id: string
-  key: string
   name: string
   completed: boolean
 }
@@ -35,7 +42,9 @@ function App() {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const resp = await API.graphql({ query }) as { data: { listNotes: Task[] } }
+        // optionally can use graphqlOperation to construct query
+        // const resp = await API.graphql(graphqlOperation(query)) as { data: { listNotes: Task[] } }
+        const resp = await API.graphql({ query: listTasksQuery }) as { data: { listNotes: Task[] } }
         setTasks(resp.data.listNotes)
       } catch (error) {
         console.log(error)
@@ -44,6 +53,17 @@ function App() {
 
     fetchTasks()
   }, [])
+
+  const createTask = async (id: string, name: string) => {
+    console.log(`sending id: ${id} and name: ${name} to AppSync`)
+    await API.graphql({
+      query: addTaskMutation,
+      variables: { note: { id: id, name: name, completed: false } },
+    })
+
+    console.log('task successfully created!')
+    setTasks([...tasks, { id: id, name: name, completed: false }])
+  }
 
   const toggleTaskCompleted = (id: string) => {
     const updatedTasks = tasks.map(task => {
@@ -70,7 +90,7 @@ function App() {
     setTasks(editedTaskList)
   }
 
-  const taskList = tasks.map(task => (
+  const taskList = tasks.map((task, index) => (
     <Todo
       id={task.id}
       key={task.id}
@@ -91,7 +111,7 @@ function App() {
       completed: false,
       toggleTaskCompleted: toggleTaskCompleted,
     }
-    setTasks([...tasks, newTask])
+    createTask(newTask.id, newTask.name)
   }
 
   const tasksNoun = taskList.length !== 1 ? 'tasks' : 'task'
