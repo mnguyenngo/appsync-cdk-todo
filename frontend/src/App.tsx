@@ -37,6 +37,14 @@ const editTaskMutation = `
   }
 `
 
+// delete mutation returns a string instead of object
+// no fields are required after deleteNote()
+const deleteTaskMutation = `
+  mutation deleteNote($noteId: String!) {
+    deleteNote(noteId: $noteId)
+  }
+`
+
 type Task = {
   id: string
   name: string
@@ -97,8 +105,15 @@ function App() {
     setTasks(updatedTasks)
   }
 
-  const deleteTask = (id: string) => {
+  const deleteTask = async (id: string) => {
     const remainingTasks = tasks.filter(task => id !== task.id)
+
+    await API.graphql({
+      query: deleteTaskMutation,
+      variables: { noteId: id },
+    })
+    console.log('task successfully deleted')
+
     setTasks(remainingTasks)
   }
 
