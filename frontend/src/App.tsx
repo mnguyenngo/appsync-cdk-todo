@@ -29,6 +29,14 @@ const addTaskMutation = `
   }
 `
 
+const editTaskMutation = `
+  mutation updateNote($note: UpdateNoteInput!) {
+    updateNote(note: $note) {
+      id name completed
+    }
+  }
+`
+
 type Task = {
   id: string
   name: string
@@ -47,7 +55,7 @@ function App() {
         const resp = await API.graphql({ query: listTasksQuery }) as { data: { listNotes: Task[] } }
         setTasks(resp.data.listNotes)
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     }
 
@@ -65,13 +73,27 @@ function App() {
     setTasks([...tasks, { id: id, name: name, completed: false }])
   }
 
-  const toggleTaskCompleted = (id: string) => {
+  const toggleTaskCompleted = async (id: string) => {
+    // determine the value to send to AppSync
+    let isComplete = false
+    // create new array of tasks with the one task updated
     const updatedTasks = tasks.map(task => {
       if (id === task.id) {
+        isComplete = task.completed
         return { ...task, completed: !task.completed }
       }
       return task
     })
+
+    // send updated task to AppSync
+    console.log(`updating id: ${id} to AppSync`)
+    await API.graphql({
+      query: editTaskMutation,
+      variables: { note: { id: id, completed: !isComplete } },
+    })
+    console.log('task successfully updated!')
+
+    // update data in state
     setTasks(updatedTasks)
   }
 
@@ -80,14 +102,29 @@ function App() {
     setTasks(remainingTasks)
   }
 
-  const editTask = (id: string, newName: string) => {
+  const editTask = async (id: string, newName: string) => {
+    // determine the value to send to AppSync; if this param is not sent,
+    // there will be an errror
+    let currentIsComplete = false
+    // create new array of tasks with the one task updated
     const editedTaskList = tasks.map(task => {
       if (id === task.id) {
+        currentIsComplete = task.completed
         return { ...task, name: newName }
       }
       return task
     })
+
+    // update data in state
     setTasks(editedTaskList)
+
+    // send updated task to AppSync
+    console.log(`updating id: ${id} and name: ${newName} to AppSync`)
+    await API.graphql({
+      query: editTaskMutation,
+      variables: { note: { id: id, name: newName, completed: currentIsComplete } },
+    })
+    console.log('task successfully updated!')
   }
 
   const taskList = tasks.map((task, index) => (
