@@ -5,6 +5,8 @@ import { Amplify, API } from 'aws-amplify'
 import { Todo } from './components/Todo'
 import { Form } from './components/Form'
 import config from './config'
+import { listTasksQuery } from './graphql/queries'
+import { addTaskMutation, editTaskMutation, deleteTaskMutation } from './graphql/mutations'
 
 Amplify.configure({
   aws_appsync_region: 'us-west-2',
@@ -12,38 +14,6 @@ Amplify.configure({
   aws_appsync_authenticationType: 'API_KEY',
   aws_appsync_apiKey: config.appsyncApiKey,
 })
-
-const listTasksQuery = `
-  query listNotes {
-    listNotes {
-      id name completed
-    }
-  }
-`
-
-const addTaskMutation = `
-  mutation createNote($note: NoteInput!) {
-    createNote(note: $note) {
-      id name completed
-    }
-  }
-`
-
-const editTaskMutation = `
-  mutation updateNote($note: UpdateNoteInput!) {
-    updateNote(note: $note) {
-      id name completed
-    }
-  }
-`
-
-// delete mutation returns a string instead of object
-// no fields are required after deleteNote()
-const deleteTaskMutation = `
-  mutation deleteNote($noteId: String!) {
-    deleteNote(noteId: $noteId)
-  }
-`
 
 type Task = {
   id: string
